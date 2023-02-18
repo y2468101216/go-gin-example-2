@@ -1,6 +1,6 @@
 # Go Gin Example In 2022
 
-fork from [專案](https://github.com/eddycjy/go-gin-example) and rewrite it to comply With Golang 1.19 in 2022.
+fork from this [project](https://github.com/eddycjy/go-gin-example) and rewrite it to comply With Golang 1.19 in 2022.
 
 ## How to Run 
 
