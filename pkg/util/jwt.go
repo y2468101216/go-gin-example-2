@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"gogin/example/pkg/logging"
 	"gogin/example/pkg/setting"
 	"time"
 
@@ -21,7 +22,7 @@ func GenerateToken(username string) string {
 	tokenString, err := token.SignedString(JwtSecret)
 
 	if err != nil {
-		fmt.Println(err)
+		logging.Error(err)
 		return ""
 	}
 
@@ -31,7 +32,7 @@ func GenerateToken(username string) string {
 func ParseToken(tokenString string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return JwtSecret, nil
 	})

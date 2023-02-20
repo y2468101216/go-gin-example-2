@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"fmt"
 	"gogin/example/pkg/e"
 	"gogin/example/pkg/util"
 	"net/http"
@@ -17,7 +16,7 @@ func JWT() gin.HandlerFunc {
 
         code = e.SUCCESS
         token := c.GetHeader("auth")
-		fmt.Println("middleware")
+
         if token == "" {
             code = e.ERROR_AUTH_CHECK_TOKEN_FAIL
         } else {

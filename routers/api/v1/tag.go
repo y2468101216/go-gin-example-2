@@ -54,7 +54,6 @@ func GetTags(c *gin.Context) {
 
 //新增文章标签
 func AddTag(c *gin.Context) {
-    fmt.Println("controller")
     var json models.AddTagFrom
     if err := c.ShouldBindJSON(&json); err != nil {
         code := e.INVALID_PARAMS

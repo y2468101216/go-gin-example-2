@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -145,7 +144,6 @@ func EditArticle(c *gin.Context) {
 		data["modified_by"] = query.ModifiedBy
 	}
 
-	fmt.Println(data)
 	models.EditArticle(id, data)
 
 	code = e.SUCCESS
