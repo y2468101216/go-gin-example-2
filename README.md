@@ -29,9 +29,8 @@ TablePrefix = blog_
 ### Run
 
 1. Clone this project
-2. go build migrate.go
-3. ./migrate -c up or ./migrate.exe -c up
-4. go run main.go
+2. go run migrate.go -c up
+3. go run main.go
 
 ## Features
 
