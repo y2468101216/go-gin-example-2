@@ -41,7 +41,7 @@ DB = 0
 
 - RESTful API
 - Gorm
-- logging
+- Logging
 - Jwt-go
 - Gin
 - App configurable
