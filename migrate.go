@@ -77,7 +77,7 @@ func exec() {
             log.Println("run migrate down")
             err = m.Down()
         default :
-            log.Fatal("No equal command")
+            log.Fatal("No equal command : ", config.command)
     }
     
 
