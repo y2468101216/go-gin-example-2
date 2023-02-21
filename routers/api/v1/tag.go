@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"fmt"
 	"gogin/example/models"
 	"gogin/example/pkg/e"
 	"gogin/example/pkg/logging"
@@ -37,8 +36,6 @@ func GetTags(c *gin.Context) {
     if c.Query("state") != "" {
         maps["state"] = query.State
     }
-
-    fmt.Print(c.Query("state"))
 
     code := e.SUCCESS
 

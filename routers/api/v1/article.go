@@ -1,11 +1,16 @@
 package v1
 
 import (
+	"context"
+	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
 	"gogin/example/models"
 	"gogin/example/pkg/e"
+	"gogin/example/pkg/logging"
+	"gogin/example/pkg/redis"
 	"gogin/example/pkg/setting"
 	"gogin/example/pkg/util"
 
@@ -14,6 +19,7 @@ import (
 
 //获取单个文章
 func GetArticle(c *gin.Context) {
+	context := context.Background()
 
 	id, err := strconv.Atoi(c.Param("id"))
 
@@ -28,10 +34,28 @@ func GetArticle(c *gin.Context) {
 	}
 
 	code := e.ERROR_NOT_EXIST_ARTICLE
+	var RedisData map[string]interface{}
+	redisKey := "article-"+strconv.Itoa(id)
+	if dataJson, err := redis.Rdb.Get(context, redisKey).Result(); err == nil {
+		code = e.SUCCESS
+		json.Unmarshal([]byte(dataJson), &RedisData)
+		c.JSON(http.StatusOK, gin.H{
+			"code" : code,
+			"msg" : e.GetMsg(code),
+			"data" : RedisData,
+		})
+		return
+	}
+
 	var data interface{}
 	if models.ExistArticleByID(id) {
 		data = models.GetArticle(id)
 		code = e.SUCCESS
+		dataJson, _ := json.Marshal(data)
+		err := redis.Rdb.Set(context, redisKey, dataJson, time.Hour * 24)
+		if err != nil {
+			logging.Error(err)
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
