@@ -10,7 +10,7 @@ fork from this [project](https://github.com/eddycjy/go-gin-example) and rewrite 
 
 ### Ready
 
-Create a **blog database** and import sql/database.sql
+Create a **blog database**
 
 ### Conf
 
@@ -29,7 +29,9 @@ TablePrefix = blog_
 ### Run
 
 1. Clone this project
-2. go run main.go
+2. go build migrate.go
+3. ./migrate -c up or ./migrate.exe -c up
+4. go run main.go
 
 ## Features
 
@@ -40,3 +42,4 @@ TablePrefix = blog_
 - Gin
 - App configurable
 - Cron
+- Cli command
