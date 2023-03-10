@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>WebRTC Voice Chat</title>
+</head>
+<body>
+<h1>WebRTC Voice Chat</h1>
+<div id="room">
+    <label for="roomId">Enter Room ID:</label>
+    <input type="text" id="roomId">
+    <button onclick="joinRoom()">Join Room</button>
+</div>
+<div id="call" style="display: none;">
+    <h2>Call Room: <span id="callRoomId"></span></h2>
+    <button onclick="startCall()">Start Call</button>
+    <button onclick="endCall()">End Call</button>
+    <audio id="localAudio" autoplay></audio>
+    <audio id="remoteAudio" autoplay></audio>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.5.0/socket.io.js"></script>
+<script>
+    const socket = io('https://9f2d-36-226-25-90.jp.ngrok.io', { transports: ["websocket"] });
+    let roomId, localStream, remoteStream, localPeer, remotePeer, localConnection, remoteConnection;
+
+    function joinRoom() {
+        roomId = document.getElementById('roomId').value;
+        socket.emit('join', roomId);
+        document.getElementById('room').style.display = 'none';
+        document.getElementById('call').style.display = 'block';
+    }
+    async function startCall() {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        document.getElementById('localAudio').srcObject = localStream;
+
+        localPeer = new RTCPeerConnection();
+        localPeer.addStream(localStream);
+        localPeer.onicecandidate = (event) => {
+            if (event.candidate) {
+                socket.emit('icecandidate', { sender: socket.id, receiver: remotePeer, candidate: event.candidate });
+            }
+        };
+
+        remotePeer = socket.id;
+        socket.emit('offer', { sender: socket.id, receiver: remotePeer });
+
+        socket.on('offer', async (data) => {
+            remotePeer = data.sender;
+
+            remoteConnection = new RTCPeerConnection();
+            remoteConnection.onaddstream = (event) => {
+                remoteStream = event.stream;
+                document.getElementById('remoteAudio').srcObject = remoteStream;
+            };
+            remoteConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('icecandidate', { sender: socket.id, receiver: remotePeer, candidate: event.candidate });
+                }
+            };
+
+            await remoteConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+            const answer = await remoteConnection.createAnswer();
+            await remoteConnection.setLocalDescription(answer);
+
+            socket.emit('answer', { sender: socket.id, receiver: remotePeer, answer: answer });
+        });
+
+        socket.on('answer', async (data) => {
+            remotePeer = data.sender;
+
+            await localPeer.setRemoteDescription(new RTCSessionDescription(data.answer));
+        });
+
+        socket.on('icecandidate', async (data) => {
+            if (data.receiver === socket.id) {
+                if (localPeer && localPeer.remoteDescription) {
+                    await localPeer.addIceCandidate(new RTCIceCandidate(data.candidate));
+                } else if (remoteConnection && remoteConnection.remoteDescription) {
+                    await remoteConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                }
+            }
+        });
+    }
+
+    function endCall() {
+        if (localPeer) {
+            localPeer.close();
+        }
+        if (remoteConnection) {
+            remoteConnection.close();
+        }
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+        }
+        if (remoteStream) {
+            remoteStream.getTracks().forEach(track => track.stop());
+        }
+        document.getElementById('localAudio').srcObject = null;
+        document.getElementById('remoteAudio').srcObject = null;
+        document.getElementById('room').style.display = 'block';
+        document.getElementById('call').style.display = 'none';
+    }
+</script>
