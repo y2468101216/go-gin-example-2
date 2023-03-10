@@ -37,12 +37,12 @@
         localPeer.addStream(localStream);
         localPeer.onicecandidate = (event) => {
             if (event.candidate) {
-                socket.emit('icecandidate', { sender: socket.id, receiver: remotePeer, candidate: event.candidate });
+                socket.emit('icecandidate', { sender: socket.id, receiver: roomId, candidate: event.candidate });
             }
         };
 
         remotePeer = socket.id;
-        socket.emit('offer', { sender: socket.id, receiver: remotePeer });
+        socket.emit('offer', { sender: socket.id, receiver: roomId });
 
         socket.on('offer', async (data) => {
             remotePeer = data.sender;
@@ -54,7 +54,7 @@
             };
             remoteConnection.onicecandidate = (event) => {
                 if (event.candidate) {
-                    socket.emit('icecandidate', { sender: socket.id, receiver: remotePeer, candidate: event.candidate });
+                    socket.emit('icecandidate', { sender: socket.id, receiver: roomId, candidate: event.candidate });
                 }
             };
 
@@ -62,17 +62,17 @@
             const answer = await remoteConnection.createAnswer();
             await remoteConnection.setLocalDescription(answer);
 
-            socket.emit('answer', { sender: socket.id, receiver: remotePeer, answer: answer });
+            socket.emit('answer', { sender: socket.id, receiver: roomId, answer: answer });
         });
 
         socket.on('answer', async (data) => {
-            remotePeer = data.sender;
+            remotePeer = roomId;
 
             await localPeer.setRemoteDescription(new RTCSessionDescription(data.answer));
         });
 
         socket.on('icecandidate', async (data) => {
-            if (data.receiver === socket.id) {
+            if (data.receiver === roomId) {
                 if (localPeer && localPeer.remoteDescription) {
                     await localPeer.addIceCandidate(new RTCIceCandidate(data.candidate));
                 } else if (remoteConnection && remoteConnection.remoteDescription) {
